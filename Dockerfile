@@ -1,5 +1,5 @@
 # Use a base OpenJDK image
-FROM openjdk:17-jdk
+FROM openjdk:17
 
 # Copy the built jar into the image
 COPY target/mywebapp-0.0.1-SNAPSHOT.jar app.jar
