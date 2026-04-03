@@ -2,28 +2,27 @@ pipeline {
     agent any
 
     tools {
-        maven 'maven 3.8.6'
+        jdk 'jdk17'       // Name you gave JDK 17 in Jenkins
+        maven 'maven'     // Name you gave Maven 3.8.6
     }
 
     environment {
-        IMAGE_NAME = "dockerhubuser/mywebapp"
-        TAG = "${BUILD_NUMBER}"
-        CONTAINER_NAME = "mywebapp"
-        DEPLOY_SERVER = "azureuser@DEPLOY_SERVER_IP"
+        DOCKER_IMAGE = "yourdockerhubusername/my-webapp:latest"
+        DOCKER_CREDENTIALS = "dockerhub-creds"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git url: 'git@github.com:anuj6244/my-webapp.git',
-                    branch: 'main',       // <-- use 'main', not 'master'
+                git branch: 'main',
+                    url: 'git@github.com:anuj6244/my-webapp.git',
                     credentialsId: 'github-ssh'
             }
         }
 
         stage('Build') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn clean install'
             }
         }
 
@@ -35,38 +34,40 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t $IMAGE_NAME:$TAG .'
+                sh "docker build -t ${DOCKER_IMAGE} ."
             }
         }
 
         stage('Push Image') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
+                    credentialsId: "${DOCKER_CREDENTIALS}",
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh '''
-                        echo $PASS | docker login -u $USER --password-stdin
-                        docker push $IMAGE_NAME:$TAG
-                    '''
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh "docker push ${DOCKER_IMAGE}"
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                sshagent(['deploy-server-ssh']) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no $DEPLOY_SERVER '
-                        docker pull $IMAGE_NAME:$TAG &&
-                        docker stop $CONTAINER_NAME || true &&
-                        docker rm $CONTAINER_NAME || true &&
-                        docker run -d -p 80:8080 --name $CONTAINER_NAME $IMAGE_NAME:$TAG
-                    '
-                    """
-                }
+                echo "Deploying Docker image ${DOCKER_IMAGE}"
+                // Add your deploy commands here
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo "Pipeline succeeded!"
+        }
+        failure {
+            echo "Pipeline failed!"
         }
     }
 }
