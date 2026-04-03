@@ -16,7 +16,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git 'https://github.com/yourusername/mywebapp.git'
+                git url: 'git@github.com:anuj6244/my-webapp.git', credentialsId: 'github-ssh'
             }
         }
 
