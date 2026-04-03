@@ -17,6 +17,6 @@ public class MyWebAppApplication {
 class HelloController {
     @GetMapping("/")
     public String hello() {
-        return "Hello, Anuj!";
+        return "Hello, World!";
     }
 }
