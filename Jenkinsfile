@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE = "yourdockerhubusername/my-webapp:latest"
+        DOCKER_IMAGE = "anuj6244/my-webapp:latest"
         DOCKER_CREDENTIALS = "dockerhub-creds"
     }
 
