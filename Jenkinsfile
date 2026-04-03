@@ -13,10 +13,11 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout') {
             steps {
-                git url: 'git@github.com:anuj6244/my-webapp.git', credentialsId: 'github-ssh'
+                git url: 'git@github.com:anuj6244/my-webapp.git',
+                    branch: 'main',       // <-- use 'main', not 'master'
+                    credentialsId: 'github-ssh'
             }
         }
 
